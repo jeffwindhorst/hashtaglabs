@@ -34,8 +34,9 @@ class ValidationController extends Controller
         if(empty($url)) {
             $this->returnData['errors'][] = 'URL is required.';
         } else {
-            $this->returnData['url'] = $url;
-            $adsTxtFile = file_get_contents('http://' . $url . '/ads.txt');
+            $this->returnData['url'] = ( substr($url, 0, 4) != 'http') ? 'http://' . $url . '/ads.txt' : $url . '/ads.txt';
+            
+            $adsTxtFile = file_get_contents($this->returnData['url']);
             $adsTxtFileArray = explode("\n", $adsTxtFile);
             if(!$adsTxtFileArray || !is_array($adsTxtFileArray)) {
                 $this->returnData['errors'][] = 'Remote file access failed. Please check your domain and try again.';
@@ -48,7 +49,7 @@ class ValidationController extends Controller
             }
             
             $ValidationModel = new \App\validation_results();
-            $ValidationModel->url = $url;
+            $ValidationModel->url = $this->returnData['url'];
             $ValidationModel->contents = $adsTxtFile;
             $ValidationModel->status = $this->status;
             $ValidationModel->save();
